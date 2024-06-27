@@ -13,7 +13,7 @@ sudo npm install -g pm2
 cat <<EOF > /var/www/html/app.js
 const express = require('express');
 const app = express();
-const port = 80;
+const port = 3000;  # Change the port to 3000
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -31,3 +31,24 @@ pm2 start app.js
 pm2 startup systemd
 pm2 save
 pm2 restart all
+
+# Configure Nginx to proxy requests to the Node.js application
+cat <<EOF | sudo tee /etc/nginx/sites-available/default
+server {
+  listen 80;
+
+  server_name _;
+
+  location / {
+    proxy_pass http://localhost:3000;  # Proxy requests to the Node.js app
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host \$host;
+    proxy_cache_bypass \$http_upgrade;
+  }
+}
+EOF
+
+# Restart Nginx to apply the new configuration
+sudo systemctl restart nginx
