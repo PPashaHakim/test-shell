@@ -1,5 +1,9 @@
 #!/bin/bash
+
+# Update package lists
 sudo apt-get update
+
+# Install Nginx
 sudo apt-get install -y nginx
 sudo systemctl start nginx
 sudo systemctl enable nginx
@@ -19,7 +23,7 @@ echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
 source ~/.bashrc
 
 # Create the table in the SQL database
-/opt/mssql-tools/bin/sqlcmd -S ${SQL_SERVER_NAME}.database.windows.net -U adminuser -P Admin123456! -d pasha-sqldb -Q "CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0);"
+/opt/mssql-tools/bin/sqlcmd -S allistair-sqlserver.database.windows.net -U adminuser -P Admin123456! -d allistair-sqldb -Q "CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0);"
 
 # Create a sample Node.js app
 cat <<EOF > /var/www/html/app.js
@@ -32,8 +36,8 @@ const port = 3000;
 const config = {
   user: 'adminuser',
   password: 'Admin123456!',
-  server: '${SQL_SERVER_NAME}.database.windows.net',
-  database: 'pasha-sqldb',
+  server: 'allistair-sqlserver.database.windows.net',
+  database: 'allistair-sqldb',
   options: {
     encrypt: true,
   },
