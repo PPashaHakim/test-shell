@@ -23,7 +23,7 @@ echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
 source ~/.bashrc
 
 # Create the table in the SQL database
-/opt/mssql-tools/bin/sqlcmd -S allistair-sqlserver.database.windows.net -U adminuser -P Admin123456! -d allistair-sqldb -Q "CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0);"
+/opt/mssql-tools/bin/sqlcmd -S tcp:allistair-sqlserver.database.windows.net,1433 -U adminuser -P Admin123456! -d allistair-sqldb -Q "IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AccessCount') BEGIN CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0); END"
 
 # Create a sample Node.js app
 cat <<EOF > /var/www/html/app.js
@@ -40,7 +40,10 @@ const config = {
   database: 'allistair-sqldb',
   options: {
     encrypt: true,
+    trustServerCertificate: false,
+    enableArithAbort: true,
   },
+  port: 1433,
 };
 
 app.get('/', async (req, res) => {
@@ -68,7 +71,7 @@ EOF
 # Install dependencies and start the app with PM2
 cd /var/www/html
 npm install express mssql
-pm2 start app.js
+pm2 start /var/www/html/app.js
 pm2 startup systemd
 pm2 save
 pm2 restart all
@@ -93,3 +96,21 @@ EOF
 
 # Restart Nginx to apply the new configuration
 sudo systemctl restart nginx
+
+# Verify services
+if ! pm2 list | grep -q 'app'; then
+  echo "Starting Node.js application..."
+  pm2 start /var/www/html/app.js
+else
+  echo "Node.js application is already running."
+fi
+
+echo "Restarting Nginx..."
+sudo systemctl restart nginx
+
+# Check statuses
+echo "Checking PM2 status..."
+pm2 status
+
+echo "Checking Nginx status..."
+sudo systemctl status nginx
