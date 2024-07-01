@@ -23,7 +23,7 @@ echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
 source ~/.bashrc
 
 # Create the table in the SQL database
-/opt/mssql-tools/bin/sqlcmd -S tcp:allistair-sqlserver.database.windows.net,1433 -U adminuser -P Admin123456! -d allistair-sqldb -Q "IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AccessCount') BEGIN CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0); END"
+/opt/mssql-tools/bin/sqlcmd -S tcp:${DB_SERVER},1433 -U ${DB_USER} -P ${DB_PASSWORD} -d ${DB_NAME} -Q "IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AccessCount') BEGIN CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0); END"
 
 # Create a sample Node.js app
 cat <<EOF > /var/www/html/app.js
@@ -34,10 +34,10 @@ const port = 3000;
 
 // SQL Server configuration
 const config = {
-  user: 'adminuser',
-  password: 'Admin123456!',
-  server: 'allistair-sqlserver.database.windows.net',
-  database: 'allistair-sqldb',
+  user: '${DB_USER}',
+  password: '${DB_PASSWORD}',
+  server: '${DB_SERVER}',
+  database: '${DB_NAME}',
   options: {
     encrypt: true,
     trustServerCertificate: false,
