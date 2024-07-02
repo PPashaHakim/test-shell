@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check for required parameters
+if [ "$#" -ne 4 ]; then
+  echo "Usage: $0 <DB_SERVER> <DB_USER> <DB_PASSWORD> <DB_NAME>"
+  exit 1
+fi
+
 DB_SERVER=$1
 DB_USER=$2
 DB_PASSWORD=$3
@@ -14,7 +20,7 @@ sudo systemctl start nginx
 sudo systemctl enable nginx
 
 # Install Node.js and PM2
-curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 sudo npm install -g pm2
 
@@ -27,11 +33,16 @@ echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
 echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
 source ~/.bashrc
 
+# Ensure the user's home directory exists
+USER_HOME=$(eval echo ~$USER)
+mkdir -p $USER_HOME
+
 # Create the table in the SQL database
 /opt/mssql-tools/bin/sqlcmd -S tcp:${DB_SERVER},1433 -U ${DB_USER} -P ${DB_PASSWORD} -d ${DB_NAME} -Q "IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'AccessCount') BEGIN CREATE TABLE AccessCount (ID INT PRIMARY KEY, Count INT); INSERT INTO AccessCount (ID, Count) VALUES (1, 0); END"
 
 # Create a sample Node.js app
-cat <<EOF > /var/www/html/app.js
+sudo mkdir -p /var/www/html
+cat <<EOF | sudo tee /var/www/html/app.js
 const express = require('express');
 const app = express();
 const sql = require('mssql');
@@ -75,11 +86,11 @@ EOF
 
 # Install dependencies and start the app with PM2
 cd /var/www/html
-npm install express mssql
-pm2 start /var/www/html/app.js
-pm2 startup systemd
-pm2 save
-pm2 restart all
+sudo npm install express mssql
+sudo pm2 start /var/www/html/app.js
+sudo pm2 startup systemd -u $USER --hp $USER_HOME
+sudo pm2 save
+sudo pm2 restart all
 
 # Configure Nginx to proxy requests to the Node.js application
 cat <<EOF | sudo tee /etc/nginx/sites-available/default
@@ -105,7 +116,7 @@ sudo systemctl restart nginx
 # Verify services
 if ! pm2 list | grep -q 'app'; then
   echo "Starting Node.js application..."
-  pm2 start /var/www/html/app.js
+  sudo pm2 start /var/www/html/app.js
 else
   echo "Node.js application is already running."
 fi
