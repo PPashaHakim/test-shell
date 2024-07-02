@@ -1,6 +1,3 @@
-Here is an alternative simple project that uses the database. This example creates a basic CRUD (Create, Read, Update, Delete) application for managing a list of items, such as a to-do list. 
-
-```bash
 #!/bin/bash
 
 # Check for required parameters
@@ -167,4 +164,3 @@ pm2 status
 
 echo "Checking Nginx status..."
 sudo systemctl status nginx
-```
