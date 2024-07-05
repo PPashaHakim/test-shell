@@ -1,5 +1,3 @@
-#!/bin/bash
-
 DB_HOST=$1
 DB_USER=$2
 DB_PASS=$3
@@ -10,10 +8,10 @@ sudo apt -y install apache2 && \
 sudo a2enmod rewrite && \
 sudo systemctl restart apache2 && \
 cd /var/www/html && \
+sudo rm -rf * && \
 sudo apt -y install php libapache2-mod-php && \
 sudo apt -y install php-mysqli && \
 sudo apt -y install git && \
-sudo rm -f index.html && \
 sudo git clone https://github.com/allistairhakim/simple-url-shortener.git . && \
 sudo apt -y install mysql-server && \
 sudo mv config.sample.php config.php && \
