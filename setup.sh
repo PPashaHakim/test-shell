@@ -35,3 +35,5 @@ sudo sed -i "s|\\\$dbhost = '';|\\\$dbhost = '${DB_HOST}';|; s|\\\$dbuser = '';|
 
 # Restart Apache to apply changes
 sudo systemctl restart apache2
+
+sudo reboot
