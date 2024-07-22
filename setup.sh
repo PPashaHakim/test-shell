@@ -20,7 +20,7 @@ sudo apt -y install php-mysqli
 
 # Install Git and clone the repository
 sudo apt -y install git && \
-sudo git clone https://github.com/allistairhakim/simple-url-shortener.git . || exit 1
+sudo git clone https://github.com/PPashaHakim/simple-url-shortener.git . || exit 1
 
 # Install MySQL server
 sudo apt -y install mysql-server
